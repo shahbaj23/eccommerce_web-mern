@@ -21,12 +21,24 @@ const addProduct = async (req, res) => {
 
     const imagesUrl = await Promise.all(
       images.map(async (item) => {
-        let result = await cloudinary.uploader.upload(item.path, {
-          resource_type: "image",
-        });
+        const result = await cloudinary.uploader.upload(
+          `data:${item.mimetype};base64,${item.buffer.toString("base64")}`,
+          { folder: "products" }
+        );
         return result.secure_url;
       })
     );
+
+    
+
+    // const imagesUrl = await Promise.all(
+    //   images.map(async (item) => {
+    //     let result = await cloudinary.uploader.upload(item.path, {
+    //       resource_type: "image",
+    //     });
+    //     return result.secure_url;
+    //   })
+    // );
 
     console.log(imagesUrl);
     console.log(title, description, price, category, subCategory, sizes);
@@ -69,8 +81,8 @@ const getProducts = async (req, res) => {
 //Delete Product
 const removeProduct = async (req, res) => {
   try {
-    await Product.findByIdAndDelete(req.body.id)
-    res.json({success: true, message: "Removed product"})
+    await Product.findByIdAndDelete(req.body.id);
+    res.json({ success: true, message: "Removed product" });
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ success: false, message: "Server error" });
@@ -84,11 +96,12 @@ const getSingleProduct = async (req, res) => {
     const product = await Product.findById(id);
 
     if (!product) {
-      return res.status(404).json({ success: false, message: "Product not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Product not found" });
     }
 
     res.json({ success: true, product });
-
   } catch (error) {
     console.log(error.message);
     res.status(500).json({ success: false, message: "Server Error" });
